@@ -221,40 +221,58 @@ The *k*-th bonus vote starts at `k² × 100` staked tokens, so the thresholds ar
 
 ## Event catalog
 
-Every state-changing call publishes an event, which `ourdao-backend` indexes since Soroban itself keeps no queryable history. Topic symbol → data tuple:
+Each published topic and its event payload are listed below. `ourdao-backend` indexes these events because Soroban does not keep queryable history.
 
-| Symbol | Data | Emitted by |
+| Topic | Payload | Emitted by |
 |---|---|---|
-| `init` | `(admins, threshold, fee, token)` | `initialize` |
-| `admin_add` / `admin_rem` | `admin` | `add_admin` / `remove_admin` |
-| `threshold` | `threshold` | `set_consensus_threshold` |
-| `policy` / `paused` / `unpaused` | — | `set_loan_policy` / `pause` / `unpause` |
-| `joined` | `(member, fee)` | `register_member` |
-| `exited` | `(member, share)` | `exit_dao` |
-| `claimed` | `(member, pending)` | `claim_rewards` |
-| `exit_a` | `(member, asset, amount)` | `exit_dao` non-base asset yield settlement |
-| `clm_ast` | `(member, asset, amount)` | `claim_rewards_in_asset` for a non-base asset |
-| `loan_req` | `(id, borrower, amount, total_repayment, asset)` | `request_loan` / `request_loan_in_asset` — `asset` is the loan's asset (the base token unless set) |
-| `loan_edit` | `(proposal_id, borrower, new_amount, total_repayment)` | `edit_loan_proposal` |
-| `loan_vote` | `(proposal_id, voter, support)` | `vote_on_loan_proposal` |
-| `loan_appr` | `(id, borrower, amount, due_time, asset)` | auto-fired on approval — `id` is both the loan's and its proposal's id |
-| `loan_rpy` | `(loan_id, borrower, outstanding, asset)` | `repay_loan` / `repay_loan_partial` / `repay_loan_in_asset` — `outstanding` is the balance still remaining *after* this payment (0 for a payment that fully repays the loan) |
-| `loan_dflt` | `(loan_id, borrower, penalty)` | `mark_loan_defaulted` |
-| `loan_exp` | `(proposal_id, borrower)` | `expire_loan_proposal` (permissionless keeper) |
-| `interest` | `(interest, active_members, asset)` | fired alongside `loan_rpy` for positive interest repayments in any asset |
-| `tre_prop` | `(id, amount, destination, private)` | `propose_treasury_withdrawal` |
-| `tre_vote` | `(id, voter, support)` | `vote_on_treasury_proposal` |
-| `tre_exec` | `(id, amount, destination)` | auto-fired on execution |
-| `tre_exp` | `(proposal_id, proposer)` | `expire_treasury_proposal` (permissionless keeper) |
-| `loan_asst` / `tre_asset` | `(id, asset)` | `request_loan_in_asset` / `propose_withdrawal_in_asset`, only when `asset` isn't the base token |
-| `prop_canc` | `(proposal_id, timestamp)` | `cancel_loan_proposal` / `cancel_treasury_proposal` |
+| `init` | `(admins, consensus_threshold, membership_fee, token)` | `initialize` |
+| `admin_add` | `admin` | `add_admin` |
+| `admin_rem` | `admin` | `remove_admin` |
+| `pset` | `(old_pauser, new_pauser)` | `set_pauser` |
+| `prev` | `(old_pauser, caller)` | `revoke_pauser` |
+| `threshold` | `(old_threshold, new_threshold)` | `set_consensus_threshold` |
+| `pol_prop` | `(caller, execution_time)` | `propose_policy_update` |
+| `policy` | `(old_policy, new_policy)` | `execute_policy_update` / `try_execute_policy_update` |
+| `pol_canc` | `caller` | `cancel_policy_update` |
+| `paused` | `caller` | `pause` |
+| `unpaused` | `caller` | `unpause` |
 | `tok_prop` | `(caller, token, execution_time)` | `propose_token_addition` |
-| `tok_add` / `tok_rem` | `(caller, token)` | `execute_token_addition` / `remove_token` |
-| `staked` / `unstaked` | `(member, amount, new_stake)` | `stake` / `unstake` |
+| `tok_add` | `(caller, token)` | `execute_token_addition` |
+| `tok_rem` | `(caller, token)` | `remove_token` |
+| `joined` | `(member, fee)` | `register_member` |
+| `name_rel` | `(old_name, owner)` | `register_name` when replacing a name; `exit_dao` |
+| `exited` | `(member, share, pending_base_yield)` | `exit_dao` |
+| `exit_a` | `(member, asset, amount)` | `exit_dao` when paying non-base yield |
+| `claimed` | `StakingRewardClaimed { member, amount, timestamp }` (the topics also include `member` and `pending`) | `claim_rewards` for the base token |
+| `clm_ast` | `(member, asset, pending)` | `claim_rewards_in_asset` for a non-base asset |
+| `delegate` | `(delegator, delegatee)` | `delegate_vote` |
+| `loan_asst` | `(id, asset)` | `request_loan_in_asset` when the asset is not the base token |
+| `loan_req` | `(id, borrower, amount, total_repayment, asset)` | `request_loan` / `request_loan_in_asset` |
+| `loan_edit` | `(proposal_id, borrower, new_amount, total_repayment)` | `edit_loan_proposal` |
+| `loan_vote` | `(proposal_id, voter, support)` | `vote_on_loan_proposal` / `vote_batch` |
+| `loan_wait` | `(proposal_id, amount)` | `vote_on_loan_proposal` / `vote_batch` when an approved loan cannot be disbursed immediately |
+| `loan_rej` | `(proposal_id, for_votes, against_votes)` | `vote_on_loan_proposal` / `vote_batch` when approval becomes unreachable |
+| `loan_appr` | `(id, borrower, amount, due_time, asset)` | Loan disbursement after approval; `id` is also the proposal ID |
+| `loan_rpy` | `(loan_id, borrower, remaining, asset)` | `repay_loan` / `repay_loan_partial` / `repay_loan_in_asset` |
+| `loan_partial_repaid` | `(borrower, amount)` | Legacy `loans::repay_partial` helper |
+| `interest` | `(interest, active_members, asset)` | Interest distribution during loan repayment |
+| `loan_dflt` | `(loan_id, borrower, penalty)` | `mark_loan_defaulted` |
+| `loan_exp` | `(proposal_id, borrower)` | `expire_loan_proposal` |
+| `prop_canc` | `(proposal_id, timestamp)` | `cancel_loan_proposal` / `cancel_treasury_proposal` (proposal-cancelled event) |
+| `tre_asset` | `(id, asset)` | `propose_withdrawal_in_asset` when the asset is not the base token |
+| `tre_prop` | `(id, amount, destination, private)` | `propose_treasury_withdrawal` / `propose_withdrawal_in_asset` |
+| `tre_vote` | `(id, voter, support)` | `vote_on_treasury_proposal` / `reveal_treasury_vote` |
+| `tre_wait` | `(proposal_id, amount)` | Treasury vote when an approved withdrawal cannot execute immediately |
+| `tre_rej` | `(proposal_id, for_votes, against_votes)` | Treasury vote when approval becomes unreachable |
+| `tre_exec` | `(id, amount, destination)` | Treasury proposal execution |
+| `tre_exp` | `(proposal_id, proposer)` | `expire_treasury_proposal` |
 | `name_reg` | `(name, owner)` | `register_name` |
 | `committed` | `(proposal_id, voter)` | `commit_treasury_vote` |
 | `revealed` | `(proposal_id, voter, support)` | `reveal_treasury_vote` |
+| `staked` | `(member, amount, new_stake, voting_weight)` | `stake` |
+| `unstaked` | `(member, amount, new_stake, voting_weight)` | `unstake` |
 | `doc_attn` | `(kind, proposal_id, caller)` | `attach_document` |
+| `TtlBumped` | `()` | `bump_dao_ttl` |
 
 ## Error codes
 
