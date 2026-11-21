@@ -6,6 +6,7 @@
 #
 # Usage:
 #   ./scripts/generate-abi.sh          # builds and generates
+#   ./scripts/generate-abi.sh --markdown # prints the README method table
 #   ./scripts/generate-abi.sh --check  # exits non-zero if output differs from
 #                                      # what a fresh generation would produce
 #                                      # (used in CI to detect drift)
@@ -21,13 +22,27 @@ OUT_DIR="contract"
 OUT_JSON="${OUT_DIR}/contract-interface.json"
 OUT_SUMMARY="${OUT_DIR}/interface-summary.txt"
 CHECK_MODE=false
+MARKDOWN_MODE=false
 
 for arg in "$@"; do
   case $arg in
     --check) CHECK_MODE=true ;;
+    --markdown) MARKDOWN_MODE=true ;;
     *) echo "Unknown argument: $arg" >&2; exit 1 ;;
   esac
 done
+
+if $MARKDOWN_MODE; then
+  echo "| Method |"
+  echo "|---|"
+  awk '/^[[:space:]]*pub fn [[:alnum:]_]+\(/ {
+    name = $0
+    sub(/^[[:space:]]*pub fn /, "", name)
+    sub(/\(.*/, "", name)
+    printf "| `%s` |\n", name
+  }' contracts/dao/src/lib.rs
+  exit 0
+fi
 
 echo "Building contract wasm..."
 cargo build --target wasm32v1-none --release -p ourdao-dao 2>&1 | tail -5

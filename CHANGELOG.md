@@ -5,6 +5,7 @@ All notable changes to `ourdao-contracts` are documented here. The format follow
 ## [Unreleased]
 
 ### Changed
+- The README ABI section now lists each public contract method from `lib.rs`; `scripts/generate-abi.sh --markdown` prints the table for regeneration (#258).
 - Added a regression test proving non-base loans use the loan asset's treasury balance for ratio checks and pricing (#277).
 - Added a regression test ensuring wrong-asset loan repayment fails before moving any tokens (#278).
 - Added a regression test proving treasury proposals execute strictly in their recorded asset even after whitelist removal (#279).
