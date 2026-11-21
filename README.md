@@ -260,17 +260,68 @@ Every state-changing call publishes an event, which `ourdao-backend` indexes sin
 
 Numeric codes are stable and part of the ABI — new variants get appended rather than renumbering existing ones.
 
-| Range | Meaning |
-|---|---|
-| 1–7 | Lifecycle/config: `AlreadyInitialized`, `NotInitialized`, `InvalidThreshold`, `InvalidAmount`, `InvalidLoanPolicy`, `Paused`, `NotPaused` |
-| 10–15 | Authorization: `NotAuthorized`, `NotAdmin`, `NotMember`, `AlreadyAdmin`, `AlreadyMember`, `CannotRemoveLastAdmin` |
-| 20–21 | Membership: `MemberNotActive`, `HasActiveLoan` |
-| 30–42 | Loans: `ProposalNotFound`, `NotBorrower`, `NotInEditingPhase`, `NotInVotingPhase`, `VotingEnded`, `AlreadyVoted`, `NotEligibleForLoan`, `CooldownActive`, `LoanNotFound`, `LoanNotActive`, `ExceedsTreasuryRatio`, `InsufficientTreasury`, `LoanNotOverdue` |
-| 50 | Treasury: `TreasuryProposalNotFound` |
-| 60–67 | Native-swap modules: `NameTaken`, `NameNotFound`, `NoStake`, `InsufficientStake`, `NoCommitment`, `CommitmentMismatch`, `AlreadyRevealed`, `NothingToClaim` |
-| 70–72 | Appended: `ProposalNotExpired`, `InvalidName`, `NotYetRevealed` |
-| 83–87 | Multi-token treasury: `TokenNotWhitelisted`, `TokenAlreadyWhitelisted`, `NoPendingTokenAddition`, `AssetMismatch`, `CannotRemoveBaseToken` |
-| 92 | Multi-token safety: `TokenHasBalance` |
+| Code | Variant |
+|---:|---|
+| 1 | `AlreadyInitialized` |
+| 2 | `NotInitialized` |
+| 3 | `InvalidThreshold` |
+| 4 | `InvalidAmount` |
+| 5 | `InvalidLoanPolicy` |
+| 6 | `Paused` |
+| 7 | `NotPaused` |
+| 10 | `NotAuthorized` |
+| 11 | `NotAdmin` |
+| 12 | `NotMember` |
+| 13 | `AlreadyAdmin` |
+| 14 | `AlreadyMember` |
+| 15 | `CannotRemoveLastAdmin` |
+| 20 | `MemberNotActive` |
+| 21 | `HasActiveLoan` |
+| 30 | `ProposalNotFound` |
+| 31 | `NotBorrower` |
+| 32 | `NotInEditingPhase` |
+| 33 | `NotInVotingPhase` |
+| 34 | `VotingEnded` |
+| 35 | `AlreadyVoted` |
+| 36 | `NotEligibleForLoan` |
+| 37 | `CooldownActive` |
+| 38 | `LoanNotFound` |
+| 39 | `LoanNotActive` |
+| 40 | `ExceedsTreasuryRatio` |
+| 41 | `InsufficientTreasury` |
+| 42 | `LoanNotOverdue` |
+| 50 | `TreasuryProposalNotFound` |
+| 60 | `NameTaken` |
+| 61 | `NameNotFound` |
+| 62 | `NoStake` |
+| 63 | `InsufficientStake` |
+| 64 | `NoCommitment` |
+| 65 | `CommitmentMismatch` |
+| 66 | `AlreadyRevealed` |
+| 67 | `NothingToClaim` |
+| 70 | `ProposalNotExpired` |
+| 71 | `InvalidName` |
+| 72 | `NotYetRevealed` |
+| 73 | `NotProposalOwner` |
+| 74 | `DocumentTooLarge` |
+| 75 | `InvalidToken` |
+| 76 | `TimelockNotExpired` |
+| 77 | `NoPendingPolicy` |
+| 78 | `InvalidMetadataCid` |
+| 79 | `InvalidDelegation` |
+| 80 | `InvalidProposal` |
+| 81 | `AlreadyPauser` |
+| 82 | `NotPauser` |
+| 83 | `TokenNotWhitelisted` |
+| 84 | `TokenAlreadyWhitelisted` |
+| 85 | `NoPendingTokenAddition` |
+| 86 | `AssetMismatch` |
+| 87 | `CannotRemoveBaseToken` |
+| 88 | `SeedingLocked` |
+| 89 | `SeedingAlreadyLocked` |
+| 90 | `TooManyOpenProposals` |
+| 91 | `BorrowerCannotVote` |
+| 92 | `TokenHasBalance` |
 
 ## Build & test
 
